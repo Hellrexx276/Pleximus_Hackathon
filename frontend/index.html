@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Agent</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+
+            background: #f5f5f5;
+
+            height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        /* ==============================
+           MAIN APP
+           ============================== */
+
+        .app {
+            width: 95%;
+            max-width: 900px;
+
+            height: 90vh;
+
+            background: white;
+
+            border-radius: 16px;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+
+        /* ==============================
+           HEADER
+           ============================== */
+
+        .header {
+            padding: 20px 25px;
+
+            background: #111827;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 20px;
+        }
+
+        .header-left p {
+            margin-top: 4px;
+
+            font-size: 13px;
+
+            color: #9ca3af;
+        }
+
+        .status {
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+
+            height: 8px;
+
+            background: #22c55e;
+
+            border-radius: 50%;
+        }
+
+
+        /* ==============================
+           CHAT
+           ============================== */
+
+        #chat {
+            flex: 1;
+
+            padding: 25px;
+
+            overflow-y: auto;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 15px;
+        }
+
+
+        /* ==============================
+           MESSAGES
+           ============================== */
+
+        .message {
+            max-width: 75%;
+
+            padding: 12px 16px;
+
+            border-radius: 12px;
+
+            line-height: 1.5;
+
+            font-size: 15px;
+
+            white-space: pre-wrap;
+
+            word-wrap: break-word;
+        }
+
+
+        .user {
+            align-self: flex-end;
+
+            background: #111827;
+
+            color: white;
+
+            border-bottom-right-radius: 4px;
+        }
+
+
+        .agent {
+            align-self: flex-start;
+
+            background: #f1f5f9;
+
+            color: #111827;
+
+            border-bottom-left-radius: 4px;
+        }
+
+
+        .message-label {
+            font-size: 11px;
+
+            font-weight: bold;
+
+            margin-bottom: 4px;
+
+            opacity: 0.6;
+        }
+
+
+        /* ==============================
+           WELCOME MESSAGE
+           ============================== */
+
+        .welcome {
+            text-align: center;
+
+            margin: auto;
+
+            color: #64748b;
+        }
+
+        .welcome h2 {
+            color: #111827;
+
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            font-size: 14px;
+
+            margin-bottom: 15px;
+        }
+
+        .examples {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            flex-wrap: wrap;
+        }
+
+        .example {
+            border: 1px solid #e2e8f0;
+
+            background: white;
+
+            padding: 8px 12px;
+
+            border-radius: 20px;
+
+            cursor: pointer;
+
+            font-size: 12px;
+
+            color: #475569;
+        }
+
+        .example:hover {
+            background: #f8fafc;
+        }
+
+
+        /* ==============================
+           TYPING INDICATOR
+           ============================== */
+
+        .typing {
+            display: none;
+
+            align-self: flex-start;
+
+            background: #f1f5f9;
+
+            padding: 12px 16px;
+
+            border-radius: 12px;
+
+            color: #64748b;
+
+            font-size: 13px;
+        }
+
+        .typing.active {
+            display: block;
+        }
+
+
+        /* ==============================
+           INPUT AREA
+           ============================== */
+
+        .input-area {
+            padding: 15px 20px;
+
+            border-top: 1px solid #e5e7eb;
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 10px;
+
+            padding: 12px 15px;
+
+            font-size: 15px;
+
+            outline: none;
+        }
+
+        #messageInput:focus {
+            border-color: #111827;
+        }
+
+        #sendButton {
+            border: none;
+
+            background: #111827;
+
+            color: white;
+
+            padding: 0 22px;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            font-size: 14px;
+        }
+
+        #sendButton:hover {
+            background: #1f2937;
+        }
+
+        #sendButton:disabled {
+            background: #9ca3af;
+
+            cursor: not-allowed;
+        }
+
+
+        /* ==============================
+           FOOTER
+           ============================== */
+
+        .footer {
+            text-align: center;
+
+            font-size: 11px;
+
+            color: #94a3b8;
+
+            padding-bottom: 10px;
+        }
+
+
+        /* ==============================
+           CLEAR BUTTON
+           ============================== */
+
+        #clearButton {
+            background: transparent;
+
+            border: 1px solid #374151;
+
+            color: #d1d5db;
+
+            padding: 6px 10px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
+            font-size: 12px;
+        }
+
+        #clearButton:hover {
+            background: #1f2937;
+        }
+
+
+        /* ==============================
+           MOBILE
+           ============================== */
+
+        @media (max-width: 600px) {
+
+            .app {
+                width: 100%;
+
+                height: 100vh;
+
+                border-radius: 0;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            #chat {
+                padding: 15px;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <!-- ==============================
+         HEADER
+         ============================== -->
+
+    <div class="header">
+
+        <div class="header-left">
+
+            <h1>
+                🤖 AI Agent
+            </h1>
+
+            <p>
+                AI-powered tool calling assistant
+            </p>
+
+        </div>
+
+
+        <div class="status">
+
+            <span class="status-dot"></span>
+
+            Online
+
+            <button
+                id="clearButton"
+                onclick="clearChat()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==============================
+         CHAT
+         ============================== -->
+
+    <div id="chat">
+
+        <div class="welcome" id="welcome">
+
+            <h2>
+                What can I help you with?
+            </h2>
+
+            <p>
+                I can calculate, check weather,
+                convert currencies and measurements,
+                and manipulate text.
+            </p>
+
+
+            <div class="examples">
+
+                <button
+                    class="example"
+                    onclick="useExample('Calculate 25% of 480')"
+                >
+                    🧮 Calculate
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('What is the weather in Mumbai?')"
+                >
+                    🌤️ Weather
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Convert 100 USD to INR')"
+                >
+                    💱 Currency
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Convert 10 feet to meters')"
+                >
+                    📏 Measurement
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Reverse the word Pleximus')"
+                >
+                    📝 Text
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Typing indicator -->
+
+        <div
+            class="typing"
+            id="typing"
+        >
+            Agent is thinking...
+        </div>
+
+    </div>
+
+
+    <!-- ==============================
+         INPUT
+         ============================== -->
+
+    <div class="input-area">
+
+        <input
+            type="text"
+            id="messageInput"
+            placeholder="Ask me something..."
+            autocomplete="off"
+        >
+
+        <button
+            id="sendButton"
+            onclick="sendMessage()"
+        >
+            Send
+        </button>
+
+    </div>
+
+
+    <div class="footer">
+        Gemini-powered AI Agent
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// =========================================================
+// CONFIGURATION
+// =========================================================
+
+const API_URL = "/chat";
+
+
+// =========================================================
+// ELEMENTS
+// =========================================================
+
+const chat =
+    document.getElementById("chat");
+
+const input =
+    document.getElementById("messageInput");
+
+const sendButton =
+    document.getElementById("sendButton");
+
+const typing =
+    document.getElementById("typing");
+
+const welcome =
+    document.getElementById("welcome");
+
+
+// =========================================================
+// SEND MESSAGE
+// =========================================================
+
+async function sendMessage() {
+
+    const message =
+        input.value.trim();
+
+
+    // Don't send empty messages
+
+    if (!message) {
+        return;
+    }
+
+
+    // Remove welcome screen
+
+    if (welcome) {
+        welcome.remove();
+    }
+
+
+    // Display user message
+
+    addMessage(
+        message,
+        "user"
+    );
+
+
+    // Clear input
+
+    input.value = "";
+
+
+    // Disable button
+
+    sendButton.disabled = true;
+
+
+    // Show typing indicator
+
+    typing.classList.add("active");
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        message: message
+                    })
+                }
+            );
+
+
+        // Check HTTP response
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Server error: ${response.status}`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        // Display agent response
+
+        addMessage(
+            data.response,
+            "agent"
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        addMessage(
+            "Sorry, I couldn't connect to the AI agent. " +
+            "Make sure the FastAPI server is running.",
+            "agent"
+        );
+
+    } finally {
+
+        typing.classList.remove(
+            "active"
+        );
+
+        sendButton.disabled = false;
+
+        input.focus();
+
+    }
+
+}
+
+
+// =========================================================
+// ADD MESSAGE
+// =========================================================
+
+function addMessage(
+    text,
+    type
+) {
+
+    const message =
+        document.createElement("div");
+
+
+    message.classList.add(
+        "message",
+        type
+    );
+
+
+    const label =
+        document.createElement("div");
+
+
+    label.classList.add(
+        "message-label"
+    );
+
+
+    label.textContent =
+        type === "user"
+            ? "You"
+            : "Agent";
+
+
+    const content =
+        document.createElement("div");
+
+
+    // Basic markdown support
+
+    content.innerHTML =
+        formatResponse(text);
+
+
+    message.appendChild(label);
+
+    message.appendChild(content);
+
+
+    // Insert before typing indicator
+
+    chat.insertBefore(
+        message,
+        typing
+    );
+
+
+    // Scroll to bottom
+
+    chat.scrollTop =
+        chat.scrollHeight;
+
+}
+
+
+// =========================================================
+// BASIC MARKDOWN FORMATTER
+// =========================================================
+
+function formatResponse(text) {
+
+    let formatted =
+        escapeHtml(text);
+
+
+    // Bold
+
+    formatted =
+        formatted.replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+        );
+
+
+    // Inline code
+
+    formatted =
+        formatted.replace(
+            /`(.*?)`/g,
+            "<code>$1</code>"
+        );
+
+
+    // New lines
+
+    formatted =
+        formatted.replace(
+            /\n/g,
+            "<br>"
+        );
+
+
+    return formatted;
+}
+
+
+// =========================================================
+// ESCAPE HTML
+// =========================================================
+
+function escapeHtml(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text;
+
+    return div.innerHTML;
+}
+
+
+// =========================================================
+// EXAMPLE BUTTONS
+// =========================================================
+
+function useExample(text) {
+
+    input.value = text;
+
+    sendMessage();
+
+}
+
+
+// =========================================================
+// CLEAR CHAT
+// =========================================================
+
+function clearChat() {
+
+    // Remove all messages
+
+    const messages =
+        chat.querySelectorAll(
+            ".message"
+        );
+
+    messages.forEach(
+        message => message.remove()
+    );
+
+
+    // Add welcome screen again
+
+    chat.innerHTML = `
+
+        <div class="welcome" id="welcome">
+
+            <h2>
+                What can I help you with?
+            </h2>
+
+            <p>
+                I can calculate, check weather,
+                convert currencies and measurements,
+                and manipulate text.
+            </p>
+
+            <div class="examples">
+
+                <button
+                    class="example"
+                    onclick="useExample('Calculate 25% of 480')"
+                >
+                    🧮 Calculate
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('What is the weather in Mumbai?')"
+                >
+                    🌤️ Weather
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Convert 100 USD to INR')"
+                >
+                    💱 Currency
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Convert 10 feet to meters')"
+                >
+                    📏 Measurement
+                </button>
+
+                <button
+                    class="example"
+                    onclick="useExample('Reverse the word Pleximus')"
+                >
+                    📝 Text
+                </button>
+
+            </div>
+
+        </div>
+
+        <div
+            class="typing"
+            id="typing"
+        >
+            Agent is thinking...
+        </div>
+
+    `;
+
+
+    // Reconnect typing reference
+
+    typing =
+        document.getElementById("typing");
+
+}
+
+
+// =========================================================
+// ENTER KEY
+// =========================================================
+
+input.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter" &&
+            !sendButton.disabled
+        ) {
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+
+</script>
+
+
+</body>
+
+</html>
